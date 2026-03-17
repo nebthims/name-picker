@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Random Student Picker</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background: #111;
+      color: #fff;
+      text-align: center;
+    }
+
+    #name {
+      font-size: 3em;
+      margin: 20px;
+      min-height: 1.5em;
+    }
+
+    button {
+      font-size: 1.2em;
+      padding: 15px 25px;
+      margin: 10px;
+      border: none;
+      border-radius: 10px;
+      background: #4caf50;
+      color: white;
+    }
+
+    button.secondary {
+      background: #333;
+      font-size: 0.9em;
+    }
+
+    #recent {
+      margin-top: 10px;
+      font-size: 0.9em;
+      color: #aaa;
+    }
+
+    #editor {
+      display: none;
+      width: 90%;
+      max-width: 400px;
+    }
+
+    textarea {
+      width: 100%;
+      height: 200px;
+      margin-top: 10px;
+      border-radius: 8px;
+      border: none;
+      padding: 10px;
+      font-size: 1em;
+    }
+  </style>
+  <!-- PWA Manifest (inline via data URL) -->
+  <link rel="manifest" href='data:application/json,{"name":"Name Picker","short_name":"Picker","start_url":".","display":"standalone","background_color":"#111111","theme_color":"#f57c00","icons":[{"src":"data:image/svg+xml,%3Csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 512 512\"%3E%3Crect x=\"40\" y=\"40\" width=\"432\" height=\"432\" rx=\"80\" ry=\"80\" fill=\"%23f57c00\"/%3E%3Ccircle cx=\"256\" cy=\"200\" r=\"80\" fill=\"white\" opacity=\"0.9\"/%3E%3Crect x=\"136\" y=\"260\" width=\"240\" height=\"120\" rx=\"60\" fill=\"white\" opacity=\"0.9\"/%3E%3Ctext x=\"256\" y=\"460\" font-size=\"60\" text-anchor=\"middle\" fill=\"white\" font-family=\"Arial, sans-serif\"%3EName%3C/text%3E%3C/svg%3E","sizes":"512x512","type":"image/svg+xml"}]}' />
+
+  <!-- Fallback favicon -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23f57c00'/%3E%3Ccircle cx='50' cy='38' r='18' fill='white'/%3E%3Crect x='25' y='55' width='50' height='25' rx='12' fill='white'/%3E%3C/svg%3E">
+
+</head>
+<body>
+
+  <div id="main">
+    <div id="name">Tap to start</div>
+    <button onclick="pickStudent()">Pick Student</button>
+    <div id="recent"></div>
+    <button class="secondary" onclick="toggleEditor()">Edit List</button>
+    <button class="secondary" onclick="resetHistory()">Reset</button>
+  </div>
+
+  <div id="editor">
+    <h3>Edit Names (one per line)</h3>
+    <textarea id="nameInput"></textarea>
+    <button onclick="saveNames()">Save</button>
+    <button class="secondary" onclick="toggleEditor()">Back</button>
+  </div>
+
+  <script>
+    let names = JSON.parse(localStorage.getItem('names')) || [
+      "Bassam","Evie","Ramsha","Leon","Townes","Eleanor",
+      "Ella","Gabe","Grier","Oscar","Sasha","Lachlan",
+      "Addie","Caley","Robert","Lachy","Jose","Billie",
+      "Maebh","Brig","UmaJosie","Zach","Remy","Patrick"
+    ];
+
+    let history = JSON.parse(localStorage.getItem('history')) || [];
+
+    function saveState() {
+      localStorage.setItem('names', JSON.stringify(names));
+      localStorage.setItem('history', JSON.stringify(history));
+    }
+
+    function weightedPick() {
+      let weights = names.map(name => {
+        let index = history.indexOf(name);
+        if (index === 0) return 0.05;
+        if (index === 1 || index === 2) return 0.3;
+        if (index === 3 || index === 4) return 0.6;
+        return 1;
+      });
+
+      let total = weights.reduce((a, b) => a + b, 0);
+      let r = Math.random() * total;
+
+      for (let i = 0; i < names.length; i++) {
+        if (r < weights[i]) return names[i];
+        r -= weights[i];
+      }
+      return names[0];
+    }
+
+    function pickStudent() {
+      if (names.length === 0) return;
+
+      let display = document.getElementById('name');
+
+      // quick animation (~0.25s)
+      let spins = 5;
+      let i = 0;
+      let interval = setInterval(() => {
+        display.textContent = names[Math.floor(Math.random() * names.length)];
+        i++;
+        if (i >= spins) {
+          clearInterval(interval);
+          let chosen = weightedPick();
+          display.textContent = chosen;
+
+          history.unshift(chosen);
+          history = history.slice(0, 5);
+
+          updateRecent();
+          saveState();
+        }
+      }, 30);
+    }
+
+    function updateRecent() {
+      document.getElementById('recent').textContent =
+        'Recent: ' + history.join(', ');
+    }
+
+    function toggleEditor() {
+      let main = document.getElementById('main');
+      let editor = document.getElementById('editor');
+
+      if (editor.style.display === 'none') {
+        main.style.display = 'none';
+        editor.style.display = 'block';
+        document.getElementById('nameInput').value = names.join('\n');
+      } else {
+        main.style.display = 'block';
+        editor.style.display = 'none';
+      }
+    }
+
+    function saveNames() {
+      let input = document.getElementById('nameInput').value;
+      names = input.split('\n').map(n => n.trim()).filter(n => n);
+      history = [];
+      saveState();
+      toggleEditor();
+      updateRecent();
+    }
+
+    function resetHistory() {
+      history = [];
+      saveState();
+      updateRecent();
+    }
+
+    updateRecent();
+  </script>
+
+</body>
+</html>

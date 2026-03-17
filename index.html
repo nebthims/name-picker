@@ -30,7 +30,7 @@
       margin: 10px;
       border: none;
       border-radius: 10px;
-      background: #A4454F;
+      background: #4caf50;
       color: white;
     }
 
@@ -62,7 +62,8 @@
     }
   </style>
   <!-- PWA Manifest (inline via data URL) -->
-  <link rel="manifest" href='data:application/json,{"name":"Name Picker","short_name":"Picker","start_url":".","display":"standalone","background_color":"#111111","theme_color":"#f57c00","icons":[{"src":"data:image/svg+xml,%3Csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 512 512\"%3E%3Crect x=\"40\" y=\"40\" width=\"432\" height=\"432\" rx=\"80\" ry=\"80\" fill=\"%23f57c00\"/%3E%3Ccircle cx=\"256\" cy=\"200\" r=\"80\" fill=\"white\" opacity=\"0.9\"/%3E%3Crect x=\"136\" y=\"260\" width=\"240\" height=\"120\" rx=\"60\" fill=\"white\" opacity=\"0.9\"/%3E%3Ctext x=\"256\" y=\"460\" font-size=\"60\" text-anchor=\"middle\" fill=\"white\" font-family=\"Arial, sans-serif\"%3EName%3C/text%3E%3C/svg%3E","sizes":"512x512","type":"image/svg+xml"}]}' />
+    <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json" />
 
   <!-- Fallback favicon -->
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23f57c00'/%3E%3Ccircle cx='50' cy='38' r='18' fill='white'/%3E%3Crect x='25' y='55' width='50' height='25' rx='12' fill='white'/%3E%3C/svg%3E">
@@ -125,7 +126,7 @@
       let display = document.getElementById('name');
 
       // quick animation (~0.25s)
-      let spins = 5;
+      let spins = 8;
       let i = 0;
       let interval = setInterval(() => {
         display.textContent = names[Math.floor(Math.random() * names.length)];
